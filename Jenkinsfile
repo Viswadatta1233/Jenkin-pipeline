@@ -17,7 +17,7 @@ pipeline {
 
         stage('Test') {
             steps {
-                // Check if build/index.html exists
+                // Check if index.html exists
                 sh '''
                     if [ -f build/index.html ]; then
                         echo "index.html exists in build directory."
@@ -26,6 +26,15 @@ pipeline {
                         exit 1
                     fi
                 '''
+                
+                // Run tests (assumes test reporter is configured)
+                sh 'npm test'
+            }
+            post {
+                always {
+                    // Publish JUnit test results if available
+                    junit 'test-results/**/*.xml'
+                }
             }
         }
     }
