@@ -17,7 +17,15 @@ pipeline {
 
         stage('Test') {
             steps {
-                echo 'Test stage'
+                // Check if build/index.html exists
+                sh '''
+                    if [ -f build/index.html ]; then
+                        echo "index.html exists in build directory."
+                    else
+                        echo "index.html is missing!"
+                        exit 1
+                    fi
+                '''
             }
         }
     }
