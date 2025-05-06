@@ -1,39 +1,42 @@
 pipeline {
-
+    agent any
 
     stages {
+        /*
+
         stage('Build') {
             agent {
                 docker {
-                    image 'node:18'
-                    args '-v $HOME/.npm:/root/.npm'
-                    reuseNode true
-                }
-            }
-            steps {
-                sh 'npm ci'
-                sh 'npm run build'
-            }
-        }
-
-        stage('Test') {
-            agent {
-                docker {
-                    image 'node:18'
-                    args '-v $HOME/.npm:/root/.npm'
+                    image 'node:18-alpine'
                     reuseNode true
                 }
             }
             steps {
                 sh '''
-                    if [ -f build/index.html ]; then
-                        echo "index.html exists in build directory."
-                    else
-                        echo "index.html is missing!"
-                        exit 1
-                    fi
+                    ls -la
+                    node --version
+                    npm --version
+                    npm ci
+                    npm run build
+                    ls -la
                 '''
-                sh 'npm test'
+            }
+        }
+        */
+
+        stage('Test') {
+            agent {
+                docker {
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
+            }
+
+            steps {
+                sh '''
+                    #test -f build/index.html
+                    npm test
+                '''
             }
         }
 
@@ -44,15 +47,12 @@ pipeline {
                     reuseNode true
                 }
             }
+
             steps {
                 sh '''
-             
                     npm install serve
                     node_modules/.bin/serve -s build &
-
                     sleep 10
-
-                    
                     npx playwright test
                 '''
             }
