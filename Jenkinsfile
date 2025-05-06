@@ -51,7 +51,7 @@ pipeline {
 
                     sleep 10
 
-                    npx playwright install --with-deps
+                    
                     npx playwright test
                 '''
             }
