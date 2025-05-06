@@ -1,14 +1,15 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:18'
-            args '-v $HOME/.npm:/root/.npm'
-            reuseNode true
-        }
-    }
+    agent none
 
     stages {
         stage('Build') {
+            agent {
+                docker {
+                    image 'node:18'
+                    args '-v $HOME/.npm:/root/.npm'
+                    reuseNode true
+                }
+            }
             steps {
                 sh 'npm ci'
                 sh 'npm run build'
@@ -16,8 +17,14 @@ pipeline {
         }
 
         stage('Test') {
+            agent {
+                docker {
+                    image 'node:18'
+                    args '-v $HOME/.npm:/root/.npm'
+                    reuseNode true
+                }
+            }
             steps {
-                // Check if index.html exists
                 sh '''
                     if [ -f build/index.html ]; then
                         echo "index.html exists in build directory."
@@ -26,16 +33,34 @@ pipeline {
                         exit 1
                     fi
                 '''
-                
-                // Run tests (assumes test reporter is configured)
                 sh 'npm test'
             }
-            post {
-                always {
-                   junit 'test-results/junit.xml'
+        }
 
+        stage('E2E') {
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.43.1-jammy'
                 }
             }
+            steps {
+                sh '''
+                    npm ci
+                    npm install serve
+                    ./node_modules/.bin/serve -s build &
+
+                    sleep 10
+
+                    npx playwright install --with-deps
+                    npx playwright test
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            junit 'jest-results/junit.xml'
         }
     }
 }
